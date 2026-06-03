@@ -7,7 +7,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/charmbracelet/huh"
+	"charm.land/huh/v2"
 
 	"laravel-installer/internal/config"
 )
@@ -191,15 +191,13 @@ func Run() (Choice, error) {
 				Value(&useDefaults),
 		),
 
-		// One select per group, each with an explicit Height, so huh always shows
-		// every option. Without a fixed Height, a group revealed by WithHideFunc
-		// gets a miscomputed height and renders only a single option. All groups
-		// are hidden when the user chose to use the defaults.
+		// One select per group. huh v2 sizes the options viewport correctly on its
+		// own (v1 needed an explicit Height or a revealed group showed a single
+		// option). All groups are hidden when the user chose to use the defaults.
 		huh.NewGroup(
 			huh.NewSelect[string]().
 				Title("Database").
 				Options(databaseOptions...).
-				Height(len(databaseOptions)+1).
 				Value(&c.Database),
 		).WithHideFunc(hideServices),
 
@@ -207,7 +205,6 @@ func Run() (Choice, error) {
 			huh.NewSelect[string]().
 				Title("Cache / in-memory store").
 				Options(cacheOptions...).
-				Height(len(cacheOptions)+1).
 				Value(&c.Cache),
 		).WithHideFunc(hideServices),
 
@@ -215,7 +212,6 @@ func Run() (Choice, error) {
 			huh.NewSelect[string]().
 				Title("Search engine").
 				Options(searchOptions...).
-				Height(len(searchOptions)+1).
 				Value(&c.Search),
 		).WithHideFunc(hideServices),
 
@@ -223,7 +219,6 @@ func Run() (Choice, error) {
 			huh.NewSelect[string]().
 				Title("Object storage (S3)").
 				Options(storageOptions...).
-				Height(len(storageOptions)+1).
 				Value(&c.Storage),
 		).WithHideFunc(hideServices),
 
@@ -232,8 +227,9 @@ func Run() (Choice, error) {
 				Title("Extras").
 				Description("Space to toggle, Enter to continue").
 				Options(addonOptions...).
-				// +2 (not +1): this field has both a Title and a Description, and
-				// huh's Height subtracts their rows from the options viewport.
+				// Only this field has a Description; without an explicit Height
+				// its title+description shrink the viewport so a couple of add-ons
+				// need scrolling. +2 leaves room for the title and description.
 				Height(len(addonOptions)+2).
 				Value(&c.Addons),
 		).WithHideFunc(hideServices),

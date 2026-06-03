@@ -17,7 +17,7 @@ import (
 	"text/template"
 	"time"
 
-	"github.com/charmbracelet/huh/spinner"
+	"charm.land/huh/v2/spinner"
 	"github.com/mattn/go-isatty"
 )
 
