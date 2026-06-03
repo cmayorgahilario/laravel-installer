@@ -2,6 +2,10 @@ module laravel-installer
 
 go 1.25.0
 
+// No-op clipboard stand-in: upstream's init() probes the PATH (slow under WSL,
+// ~0.4-0.6s per startup). See third_party/clipboard.
+replace github.com/atotto/clipboard => ./third_party/clipboard
+
 require (
 	github.com/charmbracelet/huh v1.0.0
 	github.com/charmbracelet/huh/spinner v0.0.0-20260223110133-9dc45e34a40b
