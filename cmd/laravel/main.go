@@ -4,10 +4,11 @@
 //
 // Usage:
 //
-//	laravel              # interactive wizard
-//	laravel --dry-run    # prints the script without running it
-//	laravel --debug      # shows Docker's log instead of the spinner
-//	laravel --version    # prints the version and exits
+//	laravel                  # interactive wizard
+//	laravel --dry-run        # prints the script without running it
+//	laravel --debug          # shows Docker's log instead of the spinner
+//	laravel --list-services  # prints the Sail service catalog and exits
+//	laravel --version        # prints the version and exits
 package main
 
 import (
@@ -29,15 +30,30 @@ var (
 
 func main() {
 	var (
-		dryRun      = flag.Bool("dry-run", false, "print the generated script without running it")
-		debug       = flag.Bool("debug", false, "show Docker's log instead of the spinner")
-		showVersion = flag.Bool("version", false, "print the version and exit")
+		dryRun       = flag.Bool("dry-run", false, "print the generated script without running it")
+		debug        = flag.Bool("debug", false, "show Docker's log instead of the spinner")
+		showVersion  = flag.Bool("version", false, "print the version and exit")
+		listServices = flag.Bool("list-services", false, "print the Sail service catalog and exit")
 	)
 	flag.Parse()
 
 	if *showVersion {
 		fmt.Printf("laravel %s (commit %s, %s)\n", version, commit, date)
 		return
+	}
+
+	if *listServices {
+		fmt.Print(installer.FormatCatalog())
+		return
+	}
+
+	// Warn early if the install base lives on a Windows mount under WSL, where
+	// Docker/Sail I/O is much slower than on the native Linux filesystem.
+	if installer.IsWSL() && installer.IsWindowsMount(ui.CodeBase()) {
+		fmt.Fprintf(os.Stderr,
+			"Warning: %s is on a Windows mount (/mnt/...); Docker/Sail will be slow.\n"+
+				"         For much better performance, run from the native Linux filesystem (e.g. ~ inside your WSL distro).\n\n",
+			ui.CodeBase())
 	}
 
 	// Check Docker before the wizard so we don't waste the user's time if it's

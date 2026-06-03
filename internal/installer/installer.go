@@ -46,6 +46,70 @@ var Services = []string{
 	"mailpit", "rabbitmq", "selenium", "soketi",
 }
 
+// ServiceInfo is a single Sail service with its --with= name and a description.
+type ServiceInfo struct {
+	Name string
+	Desc string
+}
+
+// ServiceGroup is a labelled category of services, as shown by --list-services.
+type ServiceGroup struct {
+	Title    string
+	Services []ServiceInfo
+}
+
+// ServiceCatalog is the grouped, human-readable view of Services. Its flattened
+// names must match Services exactly (enforced by a test).
+var ServiceCatalog = []ServiceGroup{
+	{"Database", []ServiceInfo{
+		{"mysql", "MySQL"},
+		{"pgsql", "PostgreSQL"},
+		{"mariadb", "MariaDB"},
+		{"mongodb", "MongoDB"},
+	}},
+	{"Cache & memory", []ServiceInfo{
+		{"redis", "Redis"},
+		{"valkey", "Valkey"},
+		{"memcached", "Memcached"},
+	}},
+	{"Search", []ServiceInfo{
+		{"meilisearch", "Meilisearch"},
+		{"typesense", "Typesense"},
+	}},
+	{"Object storage (S3)", []ServiceInfo{
+		{"minio", "MinIO"},
+		{"rustfs", "RustFS"},
+	}},
+	{"Additional", []ServiceInfo{
+		{"mailpit", "Mailpit — email capture"},
+		{"rabbitmq", "RabbitMQ — queue broker"},
+		{"selenium", "Selenium — browser tests"},
+		{"soketi", "Soketi — WebSockets"},
+	}},
+}
+
+// FormatCatalog renders ServiceCatalog as aligned, grouped text for the
+// --list-services flag.
+func FormatCatalog() string {
+	width := 0
+	for _, g := range ServiceCatalog {
+		for _, s := range g.Services {
+			if len(s.Name) > width {
+				width = len(s.Name)
+			}
+		}
+	}
+	var b strings.Builder
+	b.WriteString("Available Sail services (use with --with=name1,name2,...):\n")
+	for _, g := range ServiceCatalog {
+		fmt.Fprintf(&b, "\n%s:\n", g.Title)
+		for _, s := range g.Services {
+			fmt.Fprintf(&b, "  %-*s  %s\n", width, s.Name, s.Desc)
+		}
+	}
+	return b.String()
+}
+
 // ValidateServices checks that each service exists in Sail's catalog.
 func ValidateServices(services []string) error {
 	valid := make(map[string]bool, len(Services))
@@ -291,6 +355,13 @@ func IsWSL() bool {
 	}
 	v := strings.ToLower(string(data))
 	return strings.Contains(v, "microsoft") || strings.Contains(v, "wsl")
+}
+
+// IsWindowsMount reports whether path lives on a Windows drive mounted into WSL
+// (under /mnt/), where Docker/Sail filesystem I/O is dramatically slower than on
+// the native Linux filesystem.
+func IsWindowsMount(path string) bool {
+	return path == "/mnt" || strings.HasPrefix(path, "/mnt/")
 }
 
 // OpenURL opens a URL in the default browser. Under WSL it prefers wslview or
