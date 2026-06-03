@@ -126,3 +126,60 @@ func TestValidateServices(t *testing.T) {
 		})
 	}
 }
+
+func TestServiceCatalogMatchesServices(t *testing.T) {
+	// The grouped catalog must cover exactly the flat Services list (no drift).
+	var flat []string
+	seen := map[string]bool{}
+	for _, g := range ServiceCatalog {
+		for _, s := range g.Services {
+			if seen[s.Name] {
+				t.Errorf("duplicate service in catalog: %q", s.Name)
+			}
+			seen[s.Name] = true
+			flat = append(flat, s.Name)
+		}
+	}
+	if len(flat) != len(Services) {
+		t.Fatalf("catalog has %d services, Services has %d", len(flat), len(Services))
+	}
+	for _, name := range Services {
+		if !seen[name] {
+			t.Errorf("service %q is in Services but missing from ServiceCatalog", name)
+		}
+	}
+}
+
+func TestFormatCatalog(t *testing.T) {
+	out := FormatCatalog()
+	for _, want := range []string{
+		"--with=",
+		"Database", "Cache & memory", "Search", "Object storage (S3)", "Additional",
+	} {
+		if !strings.Contains(out, want) {
+			t.Errorf("FormatCatalog() missing %q\n%s", want, out)
+		}
+	}
+	for _, name := range Services {
+		if !strings.Contains(out, name) {
+			t.Errorf("FormatCatalog() missing service %q", name)
+		}
+	}
+}
+
+func TestIsWindowsMount(t *testing.T) {
+	tests := map[string]bool{
+		"/mnt/c/Users/me/code": true,
+		"/mnt/d/projects":      true,
+		"/mnt":                 true,
+		"/home/me/code":        false,
+		"/root/code":           false,
+		"/mntfoo/code":         false,
+		"":                     false,
+	}
+	for path, want := range tests {
+		if got := IsWindowsMount(path); got != want {
+			t.Errorf("IsWindowsMount(%q) = %v, want %v", path, got, want)
+		}
+	}
+}

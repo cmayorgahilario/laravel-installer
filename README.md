@@ -16,6 +16,11 @@ Unlike `laravel.build`, this tool exposes the full Sail service catalog
 the URL—, supports installing starter kits and distinguishes between the
 application name and the install directory name.
 
+> [!NOTE]
+> **Recommended for WSL (Linux) or native Linux.** This tool is built and
+> distributed for Linux only. On macOS, use the native Laravel tooling
+> ([Herd](https://herd.laravel.com), Valet or `laravel.build`) instead.
+
 ## Features
 
 - Interactive wizard built with [huh](https://github.com/charmbracelet/huh).
@@ -102,6 +107,7 @@ with `sail up -d`.
 |--------|-------------|
 | `--dry-run` | Prints the resulting script without running it. No Docker required. |
 | `--debug` | Shows Docker's output in real time instead of the progress indicator. |
+| `--list-services` | Prints the full Sail service catalog (grouped) and exits. |
 | `--version` | Prints the version and exits. |
 
 ```bash
@@ -208,6 +214,8 @@ CI (formatting, vet, tests and lint) runs on every pull request targeting
   socket (a few milliseconds), instead of spawning the docker CLI, so the wizard
   starts without a noticeable delay. It honours `DOCKER_HOST` and falls back to
   `docker version` for non-standard connections (e.g. `ssh://`).
+- Under WSL, if `~/code` resolves to a Windows mount (`/mnt/...`), the tool warns
+  you: Docker/Sail I/O there is much slower than on the native Linux filesystem.
 
 ## License
 
