@@ -16,7 +16,11 @@ How to run:
   single-select service groups + add-ons multiselect. The starter kit is asked
   BEFORE the defaults confirm so it's never hidden by the shortcut.
 - Flags: `--dry-run` prints the script instead of executing (no Docker needed);
-  `--debug` streams Docker's log live instead of hiding it behind the spinner.
+  `--debug` streams Docker's log live instead of hiding it behind the spinner;
+  `--list-services` prints the grouped Sail catalog (`installer.FormatCatalog`)
+  and exits; `--version` prints build vars. Under WSL, `main` warns if
+  `ui.CodeBase()` is on a Windows mount (`installer.IsWindowsMount`, `/mnt/...`)
+  since Docker I/O there is slow.
 
 The emitted script runs
 `docker run … laravelsail/php84-composer:latest … laravel new … sail:install --with=…`.
