@@ -188,3 +188,13 @@ support `linux` — don't re-add a `darwin` target unless the scope changes.
 - `go.mod` declares `go 1.25.0`; the installed toolchain is 1.26. `bubbletea` and
   `lipgloss` are present as transitive deps of `huh` — not used directly yet, but
   available if a live progress UI is added around the install phase.
+- **Clipboard stub (startup perf):** `go.mod` has
+  `replace github.com/atotto/clipboard => ./third_party/clipboard`. The real
+  package's `init()` probes the PATH with `exec.LookPath` for xclip/xsel/wl-copy;
+  under WSL the PATH carries dozens of `/mnt/c/...` Windows dirs whose lookups are
+  slow, adding ~0.4-0.6s to EVERY startup (before `main`, so even `--version` was
+  slow). The stub is a no-op (`ReadAll`/`WriteAll`/`Unsupported`, no `init`),
+  cutting total package-init from ~370ms to <1ms. Cost: no clipboard paste in the
+  wizard (fine — inputs are short). `third_party/clipboard` is its own tiny module
+  (its `go.mod` sets `module github.com/atotto/clipboard`); keep it committed or
+  the build breaks. Diagnose init costs with `GODEBUG=inittrace=1`.
