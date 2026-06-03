@@ -1,0 +1,66 @@
+# Release pipeline: on every push to master (i.e. a merged PR), compute the next
+# version from the Conventional Commits with svu, tag it, and let GoReleaser
+# publish the GitHub Release with the binaries. No intermediate release PR.
+#
+# "Only on a merged PR" is enforced by BRANCH PROTECTION on master (PR-only, no
+# direct pushes). svu (github.com/caarlos0/svu, by the GoReleaser author) is used
+# because it derives the first version correctly even with no prior tags
+# (mathieudutour/github-tag-action analysed 0 commits in that case).
+name: release
+
+on:
+  push:
+    branches: [master]
+
+permissions:
+  contents: write # create/push the tag and the release
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0 # full history so svu can read the commit log and tags
+
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: "1.25"
+
+      - name: Compute next version
+        id: ver
+        run: |
+          go install github.com/caarlos0/svu/v3@latest
+          SVU="$(go env GOPATH)/bin/svu"
+          CURRENT="$("$SVU" current)"
+          NEXT="$("$SVU" next)"
+          echo "current=$CURRENT" >> "$GITHUB_OUTPUT"
+          echo "next=$NEXT" >> "$GITHUB_OUTPUT"
+          if [ "$NEXT" = "$CURRENT" ]; then
+            echo "release=false" >> "$GITHUB_OUTPUT"
+            echo "No releasable commits since $CURRENT — skipping release."
+          else
+            echo "release=true" >> "$GITHUB_OUTPUT"
+            echo "Releasing $CURRENT -> $NEXT"
+          fi
+
+      - name: Create and push tag
+        if: steps.ver.outputs.release == 'true'
+        run: |
+          git tag "${{ steps.ver.outputs.next }}"
+          git push origin "${{ steps.ver.outputs.next }}"
+
+      - name: Run GoReleaser
+        if: steps.ver.outputs.release == 'true'
+        uses: goreleaser/goreleaser-action@v7
+        with:
+          version: "~> v2"
+          args: release --clean
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -1,0 +1,60 @@
+# GoReleaser configuration (https://goreleaser.com).
+# Pushing a "vX.Y.Z" tag makes GitHub Actions build the "laravel" binary for
+# Linux (amd64 + arm64) and publish a GitHub Release with the archives.
+#
+# Target is Linux-only on purpose: the tool is meant for WSL/Linux. macOS already
+# has its own Laravel tooling (Herd, Valet, laravel.build).
+#
+# Local test without publishing:  goreleaser release --snapshot --clean
+version: 2
+
+project_name: laravel-installer
+
+before:
+  hooks:
+    - go mod tidy
+
+builds:
+  - id: laravel
+    main: ./cmd/laravel
+    binary: laravel
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+    goarch:
+      - amd64
+      - arm64
+    ldflags:
+      - -s -w -X main.version={{.Version}} -X main.commit={{.Commit}} -X main.date={{.Date}}
+
+archives:
+  - id: laravel
+    # Name: laravel-installer_Linux_x86_64.tar.gz, etc. install.sh depends on
+    # this format (OS and ARCH in title-case and x86_64/arm64).
+    name_template: >-
+      {{ .ProjectName }}_
+      {{- title .Os }}_
+      {{- if eq .Arch "amd64" }}x86_64
+      {{- else if eq .Arch "386" }}i386
+      {{- else }}{{ .Arch }}{{ end }}
+    files:
+      - README.md
+      - LICENSE
+
+checksum:
+  name_template: "checksums.txt"
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
+      - "^chore:"
+
+release:
+  draft: false
+  prerelease: auto
+  # GoReleaser creates the GitHub Release and generates its notes (changelog
+  # section below) from the commits in the new tag.

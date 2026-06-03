@@ -1,0 +1,62 @@
+# yaml-language-server: $schema=https://www.coderabbit.ai/integrations/schema.v2.json
+#
+# CodeRabbit configuration. Docs: https://docs.coderabbit.ai/getting-started/yaml-configuration
+# Reviews, summaries and titles are produced in English; PR titles follow
+# Conventional Commits, which drive the automated version bump on release.
+
+language: "en-US"
+early_access: false
+tone_instructions: "Be concise, technical and constructive. Always respond in English."
+
+reviews:
+  profile: "chill"
+  request_changes_workflow: false
+
+  # PR description / walkthrough.
+  high_level_summary: true
+  collapse_walkthrough: false
+  changed_files_summary: true
+  sequence_diagrams: true
+  review_status: true
+  poem: false
+
+  # Auto-generated PR title: English + Conventional Commits.
+  auto_title_instructions: >-
+    Write the PR title in English following the Conventional Commits spec:
+    "<type>: <short imperative summary>". Pick the type from feat, fix, docs,
+    refactor, perf, test, build, ci, chore (e.g. "chore: update release
+    workflow"). Use lowercase after the colon, no trailing period, keep it
+    under ~72 characters. Add a "!" after the type for breaking changes.
+
+  # Issue / PR linking and suggestions.
+  assess_linked_issues: true
+  related_issues: true
+  related_prs: true
+  suggested_labels: true
+  suggested_reviewers: true
+
+  auto_review:
+    enabled: true
+    drafts: false
+    # Review PRs targeting the long-lived branches.
+    base_branches:
+      - "^master$"
+      - "^develop$"
+
+  # Repo-specific review guidance.
+  path_instructions:
+    - path: "**/*.go"
+      instructions: >-
+        Review as idiomatic Go: check error handling and wrapping, that
+        exported symbols are documented, and that user-facing strings stay in
+        English. This tool interpolates the project name/folder into a bash
+        command and the app name into the .env via sed, so flag any input that
+        could reach a shell or sed unescaped (potential command injection).
+    - path: "install.sh"
+      instructions: >-
+        Review as a POSIX/bash installer: ensure `set -euo pipefail` semantics
+        hold, variables are quoted, downloads are verified, and failures exit
+        with a clear message. It targets WSL/Linux only.
+
+chat:
+  auto_reply: true
