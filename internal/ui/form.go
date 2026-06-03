@@ -191,13 +191,15 @@ func Run() (Choice, error) {
 				Value(&useDefaults),
 		),
 
-		// One select per group keeps huh from compressing the list when several
-		// selects don't fit the terminal height (it would show only one option).
-		// All of them are hidden if the user chose to use the defaults.
+		// One select per group, each with an explicit Height, so huh always shows
+		// every option. Without a fixed Height, a group revealed by WithHideFunc
+		// gets a miscomputed height and renders only a single option. All groups
+		// are hidden when the user chose to use the defaults.
 		huh.NewGroup(
 			huh.NewSelect[string]().
 				Title("Database").
 				Options(databaseOptions...).
+				Height(len(databaseOptions)+1).
 				Value(&c.Database),
 		).WithHideFunc(hideServices),
 
@@ -205,19 +207,23 @@ func Run() (Choice, error) {
 			huh.NewSelect[string]().
 				Title("Cache / in-memory store").
 				Options(cacheOptions...).
+				Height(len(cacheOptions)+1).
 				Value(&c.Cache),
 		).WithHideFunc(hideServices),
 
-		// These two are short (3 options) and fit together without compressing.
 		huh.NewGroup(
 			huh.NewSelect[string]().
 				Title("Search engine").
 				Options(searchOptions...).
+				Height(len(searchOptions)+1).
 				Value(&c.Search),
+		).WithHideFunc(hideServices),
 
+		huh.NewGroup(
 			huh.NewSelect[string]().
 				Title("Object storage (S3)").
 				Options(storageOptions...).
+				Height(len(storageOptions)+1).
 				Value(&c.Storage),
 		).WithHideFunc(hideServices),
 
@@ -226,6 +232,7 @@ func Run() (Choice, error) {
 				Title("Extras").
 				Description("Space to toggle, Enter to continue").
 				Options(addonOptions...).
+				Height(len(addonOptions)+1).
 				Value(&c.Addons),
 		).WithHideFunc(hideServices),
 
