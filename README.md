@@ -16,6 +16,11 @@ Unlike `laravel.build`, this tool exposes the full Sail service catalog
 the URL—, supports installing starter kits and distinguishes between the
 application name and the install directory name.
 
+> [!NOTE]
+> **Recommended for WSL (Linux) or native Linux.** This tool is built and
+> distributed for Linux only. On macOS, use the native Laravel tooling
+> ([Herd](https://herd.laravel.com), Valet or `laravel.build`) instead.
+
 ## Features
 
 - Interactive wizard built with [huh](https://github.com/charmbracelet/huh).
