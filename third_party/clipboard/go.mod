@@ -2,4 +2,4 @@
 // `replace` directive in the root go.mod. See clipboard.go for the rationale.
 module github.com/atotto/clipboard
 
-go 1.25
+go 1.25.0

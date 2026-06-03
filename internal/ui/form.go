@@ -232,7 +232,9 @@ func Run() (Choice, error) {
 				Title("Extras").
 				Description("Space to toggle, Enter to continue").
 				Options(addonOptions...).
-				Height(len(addonOptions)+1).
+				// +2 (not +1): this field has both a Title and a Description, and
+				// huh's Height subtracts their rows from the options viewport.
+				Height(len(addonOptions)+2).
 				Value(&c.Addons),
 		).WithHideFunc(hideServices),
 
