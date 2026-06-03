@@ -75,10 +75,14 @@ executes (or prints, with `--dry-run`).
   `Slugify(AppName)`. The folder input shows the slug as a live `PlaceholderFunc`
   bound to `&c.AppName`. A `useDefaults` confirm (default true) gates the service
   groups via `.WithHideFunc` — true hides them all (use loaded config), false shows
-  them. There is NO location field — base is always `~/code`. Each
-  heavy `huh.Select` (DB, cache) is in its OWN group (stacking selects makes huh
-  compress them). The 4 add-ons are ONE `huh.MultiSelect` bound to `Config.Addons`
-  (stacked Confirms don't align their Yes/No buttons). Persists via `config.Save`.
+  them. There is NO location field — base is always `~/code`. Each service
+  `huh.Select` is in its OWN group (one select per group reads cleanly; huh v2
+  sizes each viewport correctly, so no explicit `Height` is needed). The 4 add-ons
+  are ONE `huh.MultiSelect` bound to `Config.Addons` (stacked Confirms don't align
+  their Yes/No buttons); it's the only field with a `Description`, so it sets an
+  explicit `Height(len+2)` to keep all options visible. Persists via `config.Save`.
+  Uses **huh v2** at the `charm.land/huh/v2` module path (not the old
+  `github.com/charmbracelet/huh`).
 
 - `internal/ui/paths.go` — `CodeBase()` = fixed `~/code`; `InstallPath(folder)` =
   `~/code/<folder>`; `Slugify` (name → folder slug); `ValidateURL`,
@@ -185,8 +189,10 @@ support `linux` — don't re-add a `darwin` target unless the scope changes.
   a PHP-version selector tied to this image — it does not affect the project's PHP
   version (that's Sail's `compose.yaml`). Also, `laravelsail/php85-composer` does
   not exist on Docker Hub (only php80–php84).
-- `go.mod` declares `go 1.25.0`; the installed toolchain is 1.26. `bubbletea` and
-  `lipgloss` are present as transitive deps of `huh` — not used directly yet, but
+- `go.mod` declares `go 1.25.8` (bumped by huh v2's requirements); the installed
+  toolchain is 1.26. The wizard uses **huh v2** via the `charm.land/huh/v2` vanity
+  module path, which pulls the charm.land v2 stack (`charm.land/bubbletea/v2`,
+  `charm.land/lipgloss/v2`, `charm.land/bubbles/v2`) — not used directly yet, but
   available if a live progress UI is added around the install phase.
 - **Clipboard stub (startup perf):** `go.mod` has
   `replace github.com/atotto/clipboard => ./third_party/clipboard`. The real
